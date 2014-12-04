@@ -78,11 +78,12 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 
 	while(i < ninput_items[0]) {
 
-		get_tags_in_range(tags, 0, nread + i, nread + i + 1,
-			pmt::string_to_symbol("ofdm_start"));
-
+                get_tags_in_range(tags, 0, nread + i, nread + i + 1);
 		if(tags.size()) {
-			pmt::pmt_t tuple = tags[0].value;
+                        std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
+                        // TODO - Use key not position
+			pmt::pmt_t tuple = tags.at(0).value;
+                        acorr_peak = tags.at(1).value;
 			int len_data = pmt::to_uint64(pmt::car(tuple));
 			int encoding = pmt::to_uint64(pmt::cdr(tuple));
 
@@ -145,6 +146,7 @@ void decode() {
 	pmt::pmt_t enc = pmt::from_uint64(ofdm.encoding);
 	pmt::pmt_t dict = pmt::make_dict();
 	dict = pmt::dict_add(dict, pmt::mp("encoding"), enc);
+        dict = pmt::dict_add(dict, pmt::mp("acorr_peak"),acorr_peak);
 	message_port_pub(pmt::mp("out"), pmt::cons(dict, blob));
 }
 
@@ -305,6 +307,8 @@ private:
 	bool   d_log;
 	tx_param tx;
 	ofdm_param ofdm;
+        // Absolute sample index of peak autocorrelation
+        pmt::pmt_t acorr_peak;
 	int copied;
 
 	Modulator<std::complex<double> > bpsk;

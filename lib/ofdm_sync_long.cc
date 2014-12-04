@@ -67,11 +67,15 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 	int ninput = std::min(ninput_items[0], ninput_items[1]);
 
 	const unsigned int nread = nitems_read(0);
+        static pmt::pmt_t acorr_peak_val = pmt::from_uint64(0);
 	get_tags_in_range(d_tags, 0, nread, nread + ninput);
 	if (d_tags.size()) {
 		std::sort(d_tags.begin(), d_tags.end(), gr::tag_t::offset_compare);
-
+                // First tag is ofdm_start from ofdm_sync_short, second is 
+                // acorr_peak
 		const gr::tag_t &tag = d_tags.front();
+                const gr::tag_t &acorr_tag = d_tags.at(1);
+                acorr_peak_val = acorr_tag.value;
 		const uint64_t offset = tag.offset;
 
 		if(offset > nread) {
@@ -83,9 +87,9 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 		}
 	}
 
-
 	int i = 0;
 	int o = 0;
+        uint64_t rel_offset = 0;
 
 	switch(d_state) {
 
@@ -128,10 +132,16 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 
 				if(rel == 16) {
 					assert(o == 0);
-					add_item_tag(0, nitems_written(0) + o,
+                                        rel_offset = nitems_written(0) + o;
+					add_item_tag(0, rel_offset,
 						pmt::string_to_symbol("ofdm_start"),
 						pmt::PMT_T,
 						pmt::string_to_symbol(name()));
+                                        // Also propagate acorr peak tag
+                                        add_item_tag(0,rel_offset,
+                                                pmt::string_to_symbol("acorr_peak"),
+                                                acorr_peak_val,
+                                                pmt::string_to_symbol(name()));
 				}
 
 				out[o] = in_delayed[i] * exp(gr_complex(0, d_offset * arg(d_freq_est) / 16));

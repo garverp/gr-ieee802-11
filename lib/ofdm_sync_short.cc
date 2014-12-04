@@ -71,6 +71,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_copy_left = MAX_SAMPLES;
 					d_plateau = 0;
 					insert_tag(nitems_written(0));
+                                        insert_acorr_tag(nitems_written(0),nitems_read(0)+i);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -114,6 +115,15 @@ void insert_tag(uint64_t item) {
 	const pmt::pmt_t value = pmt::PMT_T;
 	const pmt::pmt_t srcid = pmt::string_to_symbol(name());
 	add_item_tag(0, item, key, value, srcid);
+}
+
+void insert_acorr_tag(uint64_t item, uint64_t n)
+{
+   mylog(boost::format("acorr threshold @ %1%") % n);
+   const pmt::pmt_t key = pmt::string_to_symbol("acorr_peak");
+   const pmt::pmt_t value = pmt::from_uint64(n);
+   const pmt::pmt_t srcid = pmt::string_to_symbol(name());
+   add_item_tag(0, item, key, value, srcid);
 }
 
 private:

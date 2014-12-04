@@ -54,16 +54,17 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 
 	std::vector<gr::tag_t> tags;
 	const uint64_t nread = nitems_read(0);
+        uint64_t rel_offset = 0;
 
 	dout << "Decode Signal: input " << ninput_items[0]
 		<< "  output " << noutput_items << std::endl;
 
 	while((i < ninput_items[0]) && (o < noutput_items)) {
-
-		get_tags_in_range(tags, 0, nread + i, nread + i + 1,
-			pmt::string_to_symbol("ofdm_start"));
-
+                get_tags_in_range(tags,0,nread+i,nread+i+1); 
 		if(tags.size()) {
+                        std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
+                        const gr::tag_t &acorr_tag = tags.at(1);
+
 			for(int n = 0; n < 48; n++) {
 				bits[n] = -real(in[n]);
 			}
@@ -71,14 +72,19 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 			deinterleave();
 
 			decode();
-
+                        // true indicates parity check has passed
 			if(print_signal()) {
+                                rel_offset = nitems_written(0) + o * 48;
 
-				add_item_tag(0, nitems_written(0) + o * 48,
+				add_item_tag(0,rel_offset,
 					pmt::string_to_symbol("ofdm_start"),
 					pmt::cons(pmt::from_uint64(d_len),
 						pmt::from_uint64(d_encoding)),
 					pmt::string_to_symbol(name()));
+                                add_item_tag(0,rel_offset,
+                                        pmt::string_to_symbol("acorr_peak"),
+                                        acorr_tag.value,
+                                        pmt::string_to_symbol(name()));
 			}
 
 		} else if(d_copy_symbols) {
