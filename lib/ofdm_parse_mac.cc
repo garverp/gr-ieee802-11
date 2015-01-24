@@ -43,6 +43,9 @@ ofdm_parse_mac_impl(bool log, bool debug) :
 }
 
 void parse(pmt::pmt_t msg) {
+        //uint8_t filter_addr[] = {0x64,0x12,0x25,0x7c,0x28,0x01};
+        uint8_t filter_addr[] = {0x64,0x12,0x25,0x7e,0x80,0x51};
+        uint64_t ac_peak = 0;
 
 	if(pmt::is_eof_object(msg)) {
 		detail().get()->set_done(true);
@@ -50,12 +53,22 @@ void parse(pmt::pmt_t msg) {
 	} else if(pmt::is_symbol(msg)) {
 		return;
 	}
-
+        // Grab first object, which is a dictionary of metadata
+        pmt::pmt_t ac  = pmt::dict_ref(pmt::car(msg),pmt::intern("acorr_peak"),
+                                         pmt::PMT_NIL);
+        if( ac != pmt::PMT_NIL ){
+            ac_peak = pmt::to_uint64(ac);
+        }
 	msg = pmt::cdr(msg);
 
 	int data_len = pmt::blob_length(msg);
 	mac_header *h = (mac_header*)pmt::blob_data(msg);
-
+      
+            if (( memcmp(h->addr1,filter_addr,sizeof(uint8_t)*6) == 0)
+            || ( memcmp(h->addr2,filter_addr,sizeof(uint8_t)*6) == 0)
+            || ( memcmp(h->addr3,filter_addr,sizeof(uint8_t)*6) == 0)){
+               std::cout << ac_peak << std::endl;
+        
 	mylog(boost::format("length: %1%") % data_len );
 
 	dout << std::endl << "new mac frame  (length " << data_len << ")" << std::endl;
@@ -102,6 +115,8 @@ void parse(pmt::pmt_t msg) {
 	} else if((((h->frame_control) >> 2) & 63) == 34) {
 		print_ascii(frame + 26, data_len - 26);
 	}
+
+        }
 }
 
 void parse_management(char *buf, int length) {
