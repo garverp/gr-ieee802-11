@@ -88,9 +88,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 			d_frame_complete = false;
 
                         std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
-			pmt::pmt_t tuple = tags.at(0).value;
-                        acorr_peak = tags.at(1).value;
-                        std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
                         // TODO - Use key not position
 			pmt::pmt_t tuple = tags.at(0).value;
                         acorr_peak = tags.at(1).value;

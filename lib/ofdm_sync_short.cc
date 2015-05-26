@@ -74,7 +74,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_freq_offset = arg(in_abs[i]) / 16;
 					d_plateau = 0;
 					insert_tag(nitems_written(0));
-                                        insert_acorr_tag(nitems_written(0),nitems_read(0)+i);
+                                        insert_acorr_tag(nitems_written(0),nitems_read(0)+i-MIN_PLATEAU);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -101,6 +101,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_plateau = 0;
 					d_freq_offset = arg(in_abs[o]) / 16;
 					insert_tag(nitems_written(0) + o);
+                                        insert_acorr_tag(nitems_written(0) + o,nitems_read(0)+o-MIN_PLATEAU);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
