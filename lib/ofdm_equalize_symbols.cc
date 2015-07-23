@@ -52,24 +52,32 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 
 	int i = 0;
 	int o = 0;
+        pmt::pmt_t acorr_peak_val = pmt::from_uint64(0);
 
 	dout << "SYMBOLS: input " << ninput_items[0] << "  output " << noutput_items << std::endl;
 
 	while((i < ninput_items[0]) && (o < noutput_items)) {
 
-		get_tags_in_window(tags, 0, i, i + 1, pmt::string_to_symbol("ofdm_start"));
-
+		get_tags_in_window(tags, 0, i, i + 1); 
+                
 		// new WiFi frame
 		if(tags.size()) {
 			d_nsym = 0;
+                        std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
+                        const gr::tag_t &acorr_tag = tags.at(1);
+                        acorr_peak_val = acorr_tag.value;
 		}
 
-		// first data symbol (= signal field)
+                		// first data symbol (= signal field)
 		if(d_nsym == 2) {
 			add_item_tag(0, nitems_written(0) + o,
 				pmt::string_to_symbol("ofdm_start"),
 				pmt::PMT_T,
 				pmt::string_to_symbol(name()));
+                        add_item_tag(0, nitems_written(0) + o,
+                                pmt::string_to_symbol("acorr_peak"),
+                                acorr_peak_val,
+                                pmt::string_to_symbol(name()));
 		}
 
 		d_equalizer->equalize(in + (i * 64), out + (o * 48), d_nsym);
