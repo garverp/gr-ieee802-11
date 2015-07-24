@@ -74,7 +74,9 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_freq_offset = arg(in_abs[i]) / 16;
 					d_plateau = 0;
 					insert_tag(nitems_written(0));
-                                        insert_acorr_tag(nitems_written(0),nitems_read(0)+i-MIN_PLATEAU);
+                                        uint64_t spream_start = nitems_read(0);
+                                        spream_start = spream_start - 16;
+                                        insert_spre_tag(nitems_written(0),spream_start);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -101,7 +103,9 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_plateau = 0;
 					d_freq_offset = arg(in_abs[o]) / 16;
 					insert_tag(nitems_written(0) + o);
-                                        insert_acorr_tag(nitems_written(0) + o,nitems_read(0)+o-MIN_PLATEAU);
+                                        uint64_t spream_start_c = nitems_read(0);
+                                        spream_start_c = spream_start_c-16;
+                                        insert_spre_tag(nitems_written(0)+o,spream_start_c);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -139,10 +143,11 @@ void insert_tag(uint64_t item) {
 	add_item_tag(0, item, key, value, srcid);
 }
 
-void insert_acorr_tag(uint64_t item, uint64_t n)
+// Insert tag to indicate start of short preamble
+void insert_spre_tag(uint64_t item, uint64_t n)
 {
-   mylog(boost::format("acorr threshold @ %1%") % n);
-   const pmt::pmt_t key = pmt::string_to_symbol("acorr_peak");
+   mylog(boost::format("spre threshold @ %1%") % n);
+   const pmt::pmt_t key = pmt::string_to_symbol("spre_start");
    const pmt::pmt_t value = pmt::from_uint64(n);
    const pmt::pmt_t srcid = pmt::string_to_symbol(name());
    add_item_tag(0, item, key, value, srcid);

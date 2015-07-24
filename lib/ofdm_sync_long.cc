@@ -65,17 +65,17 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 			"   state " << d_state << std::endl;
 
 	int ninput = std::min(std::min(ninput_items[0], ninput_items[1]), 8192);
-        // Read the tags: ofdm_start,acorr_peak
+        // Read the tags: ofdm_start,spre_start
 	const unsigned int nread = nitems_read(0);
-        static pmt::pmt_t acorr_peak_val = pmt::from_uint64(0);
+        static pmt::pmt_t spre_start_val = pmt::from_uint64(0);
 	get_tags_in_range(d_tags, 0, nread, nread + ninput);
 	if (d_tags.size()) {
 		std::sort(d_tags.begin(), d_tags.end(), gr::tag_t::offset_compare);
                 // First tag is ofdm_start from ofdm_sync_short, second is 
-                // acorr_peak
+                // spre_start
 		const gr::tag_t &tag = d_tags.front();
-                const gr::tag_t &acorr_tag = d_tags.at(1);
-                acorr_peak_val = acorr_tag.value;
+                const gr::tag_t &spre_tag = d_tags.at(1);
+                spre_start_val = spre_tag.value;
 		const uint64_t offset = tag.offset;
 		if(offset > nread) {
 			ninput = offset - nread;
@@ -126,11 +126,16 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 					pmt::string_to_symbol("ofdm_start"),
 					pmt::PMT_T,
 					pmt::string_to_symbol(name()));
-                               // Also propagate acorr peak tag
+                               // Also propagate spre_start tag
                                rel_offset = nitems_written(0) + o;
+                               uint64_t data_start_val = pmt::to_uint64(spre_start_val) + d_frame_start;
                                add_item_tag(0,rel_offset,
-                                        pmt::string_to_symbol("acorr_peak"),
-                                        acorr_peak_val,
+                                        pmt::string_to_symbol("spre_start"),
+                                        spre_start_val,
+                                        pmt::string_to_symbol(name()));
+                               add_item_tag(0,rel_offset,
+                                        pmt::string_to_symbol("data_start"),
+                                        pmt::from_uint64(data_start_val),
                                         pmt::string_to_symbol(name()));
 
 			}
