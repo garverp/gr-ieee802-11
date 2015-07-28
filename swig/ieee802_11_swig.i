@@ -37,6 +37,7 @@
 #include "ieee802-11/ofdm_sync_long.h"
 #include "ieee802-11/ofdm_sync_short.h"
 #include "ieee802-11/wifi_signal_field.h"
+#include "ieee802-11/corr_spreamble.h"
 %}
 
 %include "gnuradio/digital/packet_header_default.h"
@@ -54,6 +55,7 @@
 %include "ieee802-11/ofdm_sync_long.h"
 %include "ieee802-11/ofdm_sync_short.h"
 %include "ieee802-11/wifi_signal_field.h"
+%include "ieee802-11/corr_spreamble.h"
 
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, chunks_to_symbols);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, ether_encap);
@@ -67,7 +69,7 @@ GR_SWIG_BLOCK_MAGIC2(ieee802_11, ofdm_mapper);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, ofdm_parse_mac);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, ofdm_sync_long);
 GR_SWIG_BLOCK_MAGIC2(ieee802_11, ofdm_sync_short);
-
+GR_SWIG_BLOCK_MAGIC2(ieee802_11, corr_spreamble);
 %template(wifi_signal_field_sptr) boost::shared_ptr<gr::ieee802_11::wifi_signal_field>;
 %pythoncode %{
 wifi_signal_field_sptr.__repr__ = lambda self: "<wifi_signal_field>"

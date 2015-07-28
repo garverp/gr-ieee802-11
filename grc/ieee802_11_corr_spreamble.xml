@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<block>
+  <name>Short Preamble Correlation</name>
+  <key>ieee802_11_corr_spreamble</key>
+  <category>IEEE802.11</category>
+  <import>import ieee802_11</import>
+  <make>ieee802_11.corr_spreamble($threshold)</make>
+  <param>
+    <name>Threshold</name>
+    <key>threshold</key>
+    <value>0.9</value>
+    <type>float</type>
+  </param>
+
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+
+  <source>
+    <name>out</name>
+    <type>complex</type>
+  </source>
+
+  <source>
+    <name>corr</name>
+    <type>complex</type>
+    <optional>1</optional>
+  </source>
+</block>
