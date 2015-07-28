@@ -42,41 +42,42 @@ namespace gr{
     corr_spreamble_impl::corr_spreamble_impl(float threshold)
       : sync_block("corr_spreamble",
               io_signature::make(1,1,sizeof(gr_complex)),
-              io_signature::make(1,2,sizeof(gr_complex)))
+              io_signature::make(1,2,sizeof(gr_complex))),
+              d_src_id(pmt::intern(alias()))
      {
         std::vector<gr_complex> spre_syms = { 
-        0.0208  + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  
-        -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   
-        1.2670  + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,  
-        0.4082  - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  
-        -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  
-        -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  
-        -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   
-        0.0000  - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  
-        -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  
-        -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  
-        -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   
-         0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   
-         1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  
-        -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   
-         0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   
-         0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.4082 - 0.4082i,   
-         0.0208 + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  
-        -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   
-         1.2670 + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   
-         0.4082 - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  
-        -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  
-        -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  
-        -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   
-         0.0000 - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   0.4082 - 0.4082i,  
-        -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   1.2670 + 0.1123i,  
-        -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  -0.6969 + 0.1196i,  
-        -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   0.0208 + 1.1755i,   
-         0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   0.8165 + 0.0000i,   
-         1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.4082 - 0.4082i,   0.0208 + 1.1755i,  
-        -0.6969 + 0.1196i,  -0.1123 - 1.2670i,   0.0000 - 0.8165i,  -0.1123 - 1.2670i,  -0.6969 + 0.1196i,   
-         0.0208 + 1.1755i,   0.4082 - 0.4082i,  -1.1755 - 0.0208i,  -0.1196 + 0.6969i,   1.2670 + 0.1123i,   
-         0.8165 + 0.0000i,   1.2670 + 0.1123i,  -0.1196 + 0.6969i,  -1.1755 - 0.0208i,   0.2041 - 0.2042i};
+        gr_complex(0.0208 ,+ 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),  
+        gr_complex(-0.6969,+ 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),   
+        gr_complex(1.2670 ,+ 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),  
+        gr_complex(0.4082 ,- 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),  
+        gr_complex(-0.1123,- 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),  
+        gr_complex(-0.1196,+ 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),  
+        gr_complex(-1.1755,- 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),   
+        gr_complex(0.0000 ,- 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),  
+        gr_complex(-1.1755,- 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),  
+        gr_complex(-0.1196,+ 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),  
+        gr_complex(-0.1123,- 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),   
+        gr_complex( 0.4082,- 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),   
+        gr_complex( 1.2670,+ 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),  
+        gr_complex(-0.6969,+ 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),   
+        gr_complex( 0.0208,+ 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),   
+        gr_complex( 0.8165,+ 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.4082, - 0.4082),   
+        gr_complex( 0.0208,+ 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),  
+        gr_complex(-0.6969,+ 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),   
+        gr_complex( 1.2670,+ 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),   
+        gr_complex( 0.4082,- 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),  
+        gr_complex(-0.1123,- 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),  
+        gr_complex(-0.1196,+ 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),  
+        gr_complex(-1.1755,- 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),gr_complex(-0.1123, - 1.2670),   
+        gr_complex( 0.0000,- 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),gr_complex( 0.4082, - 0.4082),  
+        gr_complex(-1.1755,- 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),gr_complex( 1.2670, + 0.1123),  
+        gr_complex(-0.1196,+ 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),gr_complex(-0.6969, + 0.1196),  
+        gr_complex(-0.1123,- 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),gr_complex( 0.0208, + 1.1755),   
+        gr_complex( 0.4082,- 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),gr_complex( 0.8165, + 0.0000),   
+        gr_complex( 1.2670,+ 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.4082, - 0.4082),gr_complex( 0.0208, + 1.1755),  
+        gr_complex(-0.6969,+ 0.1196),gr_complex(-0.1123, - 1.2670),gr_complex( 0.0000, - 0.8165),gr_complex(-0.1123, - 1.2670),gr_complex(-0.6969, + 0.1196),   
+        gr_complex( 0.0208,+ 1.1755),gr_complex( 0.4082, - 0.4082),gr_complex(-1.1755, - 0.0208),gr_complex(-0.1196, + 0.6969),gr_complex( 1.2670, + 0.1123),   
+        gr_complex( 0.8165,+ 0.0000),gr_complex( 1.2670, + 0.1123),gr_complex(-0.1196, + 0.6969),gr_complex(-1.1755, - 0.0208),gr_complex( 0.2041, - 0.2042)};
         d_symbols = spre_syms;
         set_threshold(threshold);
 
@@ -156,8 +157,8 @@ namespace gr{
 
       // Find the magnitude squared of the correlation
       volk_32fc_magnitude_squared_32f(&d_corr_mag[0], corr, noutput_items);
-
-      //int isps = (int)(d_sps + 0.5f);
+      d_sps = 1;
+      int isps = (int)(d_sps + 0.5f);
       int i = 0;
       while(i < noutput_items) {
         // Look for the correlator output to cross the threshold
@@ -176,10 +177,12 @@ namespace gr{
         // sync word in the primary signal output.  This corr_start
         // tag is not offset to another sample, so that downstream
         // data-aided blocks (like adaptive equalizers) know exactly
-        // where the start of the correlated symbols are.
+        // where the start of the correlated symbols are
+        if ( nitems_read(0) + i >= d_symbols.size()-1  ){
         add_item_tag(0, nitems_written(0) + i, pmt::intern("spre_start"),
-                     pmt::from_uint64(nitems_written(0)+i-d_symbols.size()), 
-                     d_src_id);
+                     pmt::from_uint64(nitems_read(0)+i-d_symbols.size()+1), 
+                     d_src_id); 
+        }
 
         // Peak detector using a "center of mass" approach center
         // holds the +/- fraction of a sample index from the found
@@ -239,7 +242,7 @@ namespace gr{
 
         // Skip ahead to the next potential symbol peak
         // (for non-offset/interleaved symbols)
-        i++;
+        i+= isps;
       }
 
       //if (output_items.size() > 1)

@@ -73,7 +73,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	int i = 0;
 
 	std::vector<gr::tag_t> tags_ofdm_start;
-        std::vector<gr::tag_t> tags_acorr_peak;
+        //std::vector<gr::tag_t> tags_acorr_peak;
 	const uint64_t nread = this->nitems_read(0);
 
 	dout << "Decode MAC: input " << ninput_items[0] << std::endl;
@@ -81,8 +81,9 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	while(i < ninput_items[0]) {
 
                 get_tags_in_range(tags_ofdm_start, 0, nread + i, nread + i + 1,pmt::intern("ofdm_start"));
-                get_tags_in_range(tags_acorr_peak, 0 ,nread + i, nread + i + 1, pmt::intern("acorr_peak"));
-		if(tags_ofdm_start.size() && tags_acorr_peak.size() ) {
+                //get_tags_in_range(tags_acorr_peak, 0 ,nread + i, nread + i + 1, pmt::intern("acorr_peak"));
+		//if(tags_ofdm_start.size() && tags_acorr_peak.size() ) {
+                  if(tags_ofdm_start.size()){
 			if (d_frame_complete == false) {
 				dout << "Warning: starting to receive new frame before old frame was complete" << std::endl;
 				dout << "Already copied " << copied << " out of " << d_tx.n_sym << " symbols of last frame" << std::endl;
@@ -90,12 +91,12 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 			d_frame_complete = false;
 
                         std::sort(tags_ofdm_start.begin(), tags_ofdm_start.end(), gr::tag_t::offset_compare);
-                        std::sort(tags_acorr_peak.begin(), tags_acorr_peak.end(), gr::tag_t::offset_compare);
+                        //std::sort(tags_acorr_peak.begin(), tags_acorr_peak.end(), gr::tag_t::offset_compare);
 
                         // TODO - Use key not position
 			pmt::pmt_t tuple = tags_ofdm_start.at(0).value;
                         
-                        acorr_peak = tags_acorr_peak.at(0).value;
+                        //acorr_peak = tags_acorr_peak.at(0).value;
 			int len_data = pmt::to_uint64(pmt::car(tuple));
 			int encoding = pmt::to_uint64(pmt::cdr(tuple));
 
@@ -161,7 +162,7 @@ void decode() {
 	pmt::pmt_t enc = pmt::from_uint64(d_ofdm.encoding);
 	pmt::pmt_t dict = pmt::make_dict();
 	dict = pmt::dict_add(dict, pmt::mp("encoding"), enc);
-        dict = pmt::dict_add(dict, pmt::mp("acorr_peak"),acorr_peak);
+        //dict = pmt::dict_add(dict, pmt::mp("acorr_peak"),acorr_peak);
 	message_port_pub(pmt::mp("out"), pmt::cons(dict, blob));
 }
 

@@ -74,8 +74,8 @@ int general_work (int noutput, gr_vector_int& ninput_items,
                 // First tag is ofdm_start from ofdm_sync_short, second is 
                 // spre_start
 		const gr::tag_t &tag = d_tags.front();
-                const gr::tag_t &spre_tag = d_tags.at(1);
-                spre_start_val = spre_tag.value;
+                //const gr::tag_t &spre_tag = d_tags.at(1);
+                //spre_start_val = spre_tag.value;
 		const uint64_t offset = tag.offset;
 		if(offset > nread) {
 			ninput = offset - nread;
@@ -127,17 +127,13 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 					pmt::PMT_T,
 					pmt::string_to_symbol(name()));
                                // Also propagate spre_start tag
+                               /**
                                rel_offset = nitems_written(0) + o;
                                uint64_t data_start_val = pmt::to_uint64(spre_start_val) + d_frame_start;
                                add_item_tag(0,rel_offset,
                                         pmt::string_to_symbol("spre_start"),
                                         spre_start_val,
-                                        pmt::string_to_symbol(name()));
-                               add_item_tag(0,rel_offset,
-                                        pmt::string_to_symbol("data_start"),
-                                        pmt::from_uint64(data_start_val),
-                                        pmt::string_to_symbol(name()));
-
+                                        pmt::string_to_symbol(name())); **/
 			}
 			if(rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
 				out[o] = in_delayed[i] * exp(gr_complex(0, d_offset * d_freq_offset));

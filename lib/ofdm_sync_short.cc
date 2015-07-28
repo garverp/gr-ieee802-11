@@ -74,9 +74,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_freq_offset = arg(in_abs[i]) / 16;
 					d_plateau = 0;
 					insert_tag(nitems_written(0));
-                                        uint64_t spream_start = nitems_read(0);
-                                        spream_start = spream_start - 16;
-                                        insert_spre_tag(nitems_written(0),spream_start);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -103,9 +100,9 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_plateau = 0;
 					d_freq_offset = arg(in_abs[o]) / 16;
 					insert_tag(nitems_written(0) + o);
-                                        uint64_t spream_start_c = nitems_read(0);
-                                        spream_start_c = spream_start_c-16;
-                                        insert_spre_tag(nitems_written(0)+o,spream_start_c);
+                                        //uint64_t spream_start_c = nitems_read(0);
+                                        //spream_start_c = spream_start_c-16;
+                                        //insert_spre_tag(nitems_written(0)+o,spream_start_c);
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
