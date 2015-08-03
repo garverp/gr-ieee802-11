@@ -85,6 +85,11 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                                         pmt::string_to_symbol("acorr_peak"),
                                         acorr_tag.value,
                                         pmt::string_to_symbol(name())); **/
+                                // 320 samples @ 20 MSPS for short+long preamble
+                                // d_copy_symbols OFDM symbols (N_SYM) X 80 samples/symbol
+                                // +1 for the signal field symbol
+                                uint64_t packet_len = 320 + 80*(d_copy_symbols+1);
+                                //std::cout << "packet_len=" << packet_len << std::endl;
 			}
 
 		} else if(d_copy_symbols) {

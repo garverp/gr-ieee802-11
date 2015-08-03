@@ -55,9 +55,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 
 	int noutput = noutput_items;
 	int ninput = std::min(std::min(ninput_items[0], ninput_items[1]), ninput_items[2]);
-
 	// dout << "SHORT noutput : " << noutput << " ninput: " << ninput_items[0] << std::endl;
-
 	switch(d_state) {
 
 	case SEARCH: {
@@ -74,6 +72,15 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_freq_offset = arg(in_abs[i]) / 16;
 					d_plateau = 0;
 					insert_tag(nitems_written(0));
+                                        // Tag when short preamble correlation 
+                                        // crosses threshold = nitems_read(0)+i
+                                        // preamble correlation takes 48 samples,
+                                        // so assuming it's empty takes 48 samples
+                                        // to integrate enough energy to cross threshold
+                                        if( nitems_read(0)+i >= 48 ){
+                                          uint64_t spream_start_c = nitems_read(0)+i-48;
+                                          insert_spre_tag(nitems_written(0),spream_start_c);
+                                        }
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
@@ -100,9 +107,11 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					d_plateau = 0;
 					d_freq_offset = arg(in_abs[o]) / 16;
 					insert_tag(nitems_written(0) + o);
-                                        //uint64_t spream_start_c = nitems_read(0);
-                                        //spream_start_c = spream_start_c-16;
-                                        //insert_spre_tag(nitems_written(0)+o,spream_start_c);
+                                        if( nitems_read(0)+o >= 48){
+                                        uint64_t spream_start_c = nitems_read(0)+o-48;
+                                        spream_start_c = spream_start_c;
+                                        insert_spre_tag(nitems_written(0)+o,spream_start_c);
+                                        }
 					dout << "SHORT Frame!" << std::endl;
 					break;
 				}
