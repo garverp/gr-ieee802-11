@@ -62,8 +62,13 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	while((i < ninput_items[0]) && (o < noutput_items)) {
                 get_tags_in_range(tags,0,nread+i,nread+i+1); 
 		if(tags.size()) {
+                        if( tags.size() != 2){
+                           std::cout << "WARN: ofdm_decode_signal tags.size() != 2" << std::endl;
+
+                        }
                         std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
-                        //const gr::tag_t &acorr_tag = tags.at(1);
+                        // Assume order is ofdm_start,spre_start AND 1 tag each loop iteration
+                        const gr::tag_t &spre_start_tag = tags.at(1);
 
 			for(int n = 0; n < 48; n++) {
 				bits[n] = -real(in[n]);
@@ -80,16 +85,15 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					pmt::cons(pmt::from_uint64(d_len),
 						pmt::from_uint64(d_encoding)),
 					pmt::string_to_symbol(name()));
-                                /**
-                                add_item_tag(0,rel_offset,
-                                        pmt::string_to_symbol("acorr_peak"),
-                                        acorr_tag.value,
-                                        pmt::string_to_symbol(name())); **/
                                 // 320 samples @ 20 MSPS for short+long preamble
                                 // d_copy_symbols OFDM symbols (N_SYM) X 80 samples/symbol
                                 // +1 for the signal field symbol
                                 uint64_t packet_len = 320 + 80*(d_copy_symbols+1);
-                                //std::cout << "packet_len=" << packet_len << std::endl;
+                                uint64_t pkt_end = pmt::to_uint64(spre_start_tag.value)+packet_len;
+                                add_item_tag(0,rel_offset,pmt::string_to_symbol("spre_start"),
+                                      spre_start_tag.value,pmt::string_to_symbol(name())); 
+                                add_item_tag(0,rel_offset,pmt::string_to_symbol("pkt_end"),
+                                      pmt::from_uint64(pkt_end),pmt::string_to_symbol(name()));
 			}
 
 		} else if(d_copy_symbols) {

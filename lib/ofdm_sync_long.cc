@@ -19,7 +19,7 @@
 #include <gnuradio/io_signature.h>
 #include <gnuradio/filter/fir_filter.h>
 #include <gnuradio/fft/fft.h>
-
+#include <queue>
 #include <list>
 #include <tuple>
 
@@ -67,18 +67,23 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 	int ninput = std::min(std::min(ninput_items[0], ninput_items[1]), 8192);
         // Read the tags: ofdm_start,spre_start
 	const unsigned int nread = nitems_read(0);
-        static pmt::pmt_t spre_start_val = pmt::from_uint64(0);
+        pmt::pmt_t spre_start_val = pmt::from_uint64(0);
+        static std::queue<pmt::pmt_t> spre_queue;
 	get_tags_in_range(d_tags, 0, nread, nread + ninput);
 	if (d_tags.size()) {
 		std::sort(d_tags.begin(), d_tags.end(), gr::tag_t::offset_compare);
-                // First tag is ofdm_start from ofdm_sync_short, second is 
-                // spre_start
 		const gr::tag_t &tag = d_tags.front();
-                //const gr::tag_t &spre_tag = d_tags.at(1);
-                //spre_start_val = spre_tag.value;
+                /**
+                for( int i = 0; i < d_tags.size(); i++ ){
+                     const gr::tag_t &ctag = d_tags.at(i);
+                     if( ctag.key == pmt::mp("spre_start")){
+                        //spre_queue.push(ctag.value);
+                     }
+                }**/
 		const uint64_t offset = tag.offset;
 		if(offset > nread) {
-			ninput = offset - nread;
+		       ninput = offset - nread;
+                       
 		} else {
 			if(d_offset && (d_state == SYNC)) {
 				throw std::runtime_error("wtf");
@@ -91,7 +96,6 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 
 	int i = 0;
 	int o = 0;
-        uint64_t rel_offset = 0;
 
 	switch(d_state) {
 
@@ -110,7 +114,6 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 				d_offset = 0;
 				d_count = 0;
 				d_state = COPY;
-
 				break;
 			}
 		}
@@ -122,19 +125,26 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 
 			int rel = d_offset - d_frame_start;
 			if(!rel)  {
+                                //std::cout << "Add tag" << std::endl;
 				add_item_tag(0, nitems_written(0),
 					pmt::string_to_symbol("ofdm_start"),
 					pmt::PMT_T,
 					pmt::string_to_symbol(name()));
+                                 if( !spre_queue.empty() ){
+                                   spre_start_val = spre_queue.front();
+                                   //std::cout << "spre_start=" << spre_start_val << std::endl;
+                                   spre_queue.pop();
+                                 }else{
+                                    std::cout << "WARN: spre_queue is empty but need tag" << std::endl;
+                                 }
+                              //  std::cout << "ofdm_start@" << nitems_written(0) << std::endl;
                                // Also propagate spre_start tag
-                               /**
-                               rel_offset = nitems_written(0) + o;
-                               uint64_t data_start_val = pmt::to_uint64(spre_start_val) + d_frame_start;
-                               add_item_tag(0,rel_offset,
+                               add_item_tag(0,nitems_written(0),
                                         pmt::string_to_symbol("spre_start"),
                                         spre_start_val,
-                                        pmt::string_to_symbol(name())); **/
+                                        pmt::string_to_symbol(name())); 
 			}
+
 			if(rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
 				out[o] = in_delayed[i] * exp(gr_complex(0, d_offset * d_freq_offset));
 				o++;
@@ -163,7 +173,18 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 	}
 
 	dout << "produced : " << o << " consumed: " << i << std::endl;
+        get_tags_in_range(d_tags,0,nread,nread+i,pmt::intern("spre_start"));
+        if( d_tags.size() > 0 ){
+           if( d_tags.size() != 1 ){
+              std::cout << "WARN: " << d_tags.size() << " spre_start tags consumed" << std::endl;
+           }
+           for( int k = 0; k < d_tags.size(); k++ ){
+              const gr::tag_t &ctag = d_tags.at(k);
+              spre_queue.push(ctag.value);
+              //std::cout << "pushed " << ctag.value << std::endl;
+           }
 
+        }
 	d_count += o;
 	consume(0, i);
 	consume(1, i);

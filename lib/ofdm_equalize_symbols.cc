@@ -53,15 +53,24 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	int i = 0;
 	int o = 0;
 	dout << "SYMBOLS: input " << ninput_items[0] << "  output " << noutput_items << std::endl;
-
+        pmt::pmt_t spre_start_val = pmt::from_uint64(0);
 	while((i < ninput_items[0]) && (o < noutput_items)) {
 
 		get_tags_in_window(tags, 0, i, i + 1); 
-                
+                 
 		// new WiFi frame
 		if(tags.size()) {
 			d_nsym = 0;
                         std::sort(tags.begin(), tags.end(), gr::tag_t::offset_compare);
+                        if( tags.size() == 2 ){
+                           // Grab preamble tag to propagate
+                           // Assuming order presevered AND one pair of tags per WLAN frame
+                           const gr::tag_t &spre_tag = tags.at(1);
+                           spre_start_val = spre_tag.value;
+                        }else{
+                           std::cout << "WARN: ofdm_equalize_symbols: tags.size() != 2" << std::endl;
+
+                        }
 		}
 
                 		// first data symbol (= signal field)
@@ -70,6 +79,10 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 				pmt::string_to_symbol("ofdm_start"),
 				pmt::PMT_T,
 				pmt::string_to_symbol(name()));
+                        add_item_tag(0, nitems_written(0) + o,
+                                pmt::string_to_symbol("spre_start"),
+                                spre_start_val,
+                                pmt::string_to_symbol(name())); 
                }
 
 		d_equalizer->equalize(in + (i * 64), out + (o * 48), d_nsym);
