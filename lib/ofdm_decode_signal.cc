@@ -55,6 +55,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	std::vector<gr::tag_t> tags;
 	const uint64_t nread = nitems_read(0);
         uint64_t rel_offset = 0;
+        static int bad_pkts = 0;
 
 	dout << "Decode Signal: input " << ninput_items[0]
 		<< "  output " << noutput_items << std::endl;
@@ -79,6 +80,7 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 			decode();
                         // true indicates parity check has passed
 			if(print_signal()) {
+                                
                                 rel_offset = nitems_written(0) + o;
 				add_item_tag(0,rel_offset,
 					pmt::string_to_symbol("ofdm_start"),
@@ -88,13 +90,21 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                                 // 320 samples @ 20 MSPS for short+long preamble
                                 // d_copy_symbols OFDM symbols (N_SYM) X 80 samples/symbol
                                 // +1 for the signal field symbol
-                                uint64_t packet_len = 320 + 80*(d_copy_symbols+1);
-                                uint64_t pkt_end = pmt::to_uint64(spre_start_tag.value)+packet_len;
-                                add_item_tag(0,rel_offset,pmt::string_to_symbol("spre_start"),
-                                      spre_start_tag.value,pmt::string_to_symbol(name())); 
-                                add_item_tag(0,rel_offset,pmt::string_to_symbol("pkt_end"),
-                                      pmt::from_uint64(pkt_end),pmt::string_to_symbol(name()));
-			}
+                                if( d_copy_symbols < 156 ){
+                                   uint64_t packet_len = 320 + 80*(d_copy_symbols+1);
+                                   uint64_t pkt_end = pmt::to_uint64(spre_start_tag.value)+packet_len;
+                                   add_item_tag(0,rel_offset,pmt::string_to_symbol("spre_start"),
+                                         spre_start_tag.value,pmt::string_to_symbol(name())); 
+                                   add_item_tag(0,rel_offset,pmt::string_to_symbol("pkt_end"),
+                                         pmt::from_uint64(pkt_end),pmt::string_to_symbol(name()));
+                                }else{
+                                   //std::cout << "d_copy_symbols=" << d_copy_symbols << std::endl;
+                                }
+			}else{
+                           //std::cout << "ofdm_decode_signal: Parity check failed" << std::endl;
+                           bad_pkts++;
+                           //std::cout << "bad_pkts=" << bad_pkts << std::endl;
+                        }
 
 		} else if(d_copy_symbols) {
 

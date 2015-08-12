@@ -22,6 +22,7 @@
 #include <gnuradio/io_signature.h>
 #include <itpp/itcomm.h>
 #include <iomanip>
+#include <queue>
 
 using namespace gr::ieee802_11;
 using namespace itpp;
@@ -71,9 +72,15 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	const gr_complex *in = (const gr_complex*)input_items[0];
 
 	int i = 0;
+        static int rxd_frames = 0;
+        static int incomplete_frames = 0;
+        static int too_long_frames = 0;
 
 	std::vector<gr::tag_t> tags_ofdm_start;
-        //std::vector<gr::tag_t> tags_acorr_peak;
+        std::vector<gr::tag_t> tags_spre_start;
+        std::vector<gr::tag_t> tags_pkt_end;
+        static std::queue<pmt::pmt_t> pkt_strtstop_queue;
+
 	const uint64_t nread = this->nitems_read(0);
 
 	dout << "Decode MAC: input " << ninput_items[0] << std::endl;
@@ -81,17 +88,29 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	while(i < ninput_items[0]) {
 
                 get_tags_in_range(tags_ofdm_start, 0, nread + i, nread + i + 1,pmt::intern("ofdm_start"));
-                //get_tags_in_range(tags_acorr_peak, 0 ,nread + i, nread + i + 1, pmt::intern("acorr_peak"));
+                get_tags_in_range(tags_spre_start, 0 ,nread + i, nread + i + 1, pmt::intern("spre_start"));
+                get_tags_in_range(tags_pkt_end, 0 ,nread + i, nread + i + 1, pmt::intern("pkt_end"));
 		//if(tags_ofdm_start.size() && tags_acorr_peak.size() ) {
                   if(tags_ofdm_start.size()){
 			if (d_frame_complete == false) {
 				dout << "Warning: starting to receive new frame before old frame was complete" << std::endl;
 				dout << "Already copied " << copied << " out of " << d_tx.n_sym << " symbols of last frame" << std::endl;
+                                incomplete_frames++;
+                                //std::cout << "incomplete_frames=" << incomplete_frames << std::endl;
 			}
 			d_frame_complete = false;
 
                         std::sort(tags_ofdm_start.begin(), tags_ofdm_start.end(), gr::tag_t::offset_compare);
-                        //std::sort(tags_acorr_peak.begin(), tags_acorr_peak.end(), gr::tag_t::offset_compare);
+                        std::sort(tags_spre_start.begin(), tags_spre_start.end(), gr::tag_t::offset_compare);
+                        std::sort(tags_pkt_end.begin(), tags_pkt_end.end(), gr::tag_t::offset_compare);
+                        
+                        if( tags_spre_start.size() == 1 && tags_pkt_end.size() == 1){
+                                 const gr::tag_t &spre_tag = tags_spre_start.at(0);   
+                                 const gr::tag_t &pkt_end_tag =tags_pkt_end.at(0);
+                                 pkt_strtstop_queue.push(pmt::cons(spre_tag.value,pkt_end_tag.value));
+                                 //std::cout << "spre_start=" << spre_tag.value << std::endl;    
+                                 //std::cout << "pkt_end=" << pkt_end_tag.value << std::endl;    
+                        }
 
                         // TODO - Use key not position
 			pmt::pmt_t tuple = tags_ofdm_start.at(0).value;
@@ -113,6 +132,8 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					<< encoding << std::endl;
 			} else {
 				dout << "Dropping frame which is too large (symbols or bits)" << std::endl;
+                                too_long_frames++;
+                                //std::cout << "too_long_frames=" << too_long_frames << std::endl;
 			}
 		}
 
@@ -121,15 +142,29 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 			std::memcpy(sym + (copied * 48), in, 48 * sizeof(gr_complex));
 			copied++;
 
-			if(copied == d_tx.n_sym) {
-				dout << "received complete frame - decoding" << std::endl;
-				decode();
-				in += 48;
-				i++;
-				d_frame_complete = true;
-				break;
-			}
-		}
+                        if(copied == d_tx.n_sym) {
+                           dout << "received complete frame - decoding" << std::endl;
+                           if( decode() ){
+                              rxd_frames++;
+                              //std::cout << "rxd_frames=" << rxd_frames << std::endl;
+
+                              if( !pkt_strtstop_queue.empty() ){
+                                std::cout << pmt::car(pkt_strtstop_queue.front()) 
+                                          << "," << pmt::cdr(pkt_strtstop_queue.front()) << std::endl;
+                                 pkt_strtstop_queue.pop();
+                              }
+                              // Packet failed checksum, discard
+                           }else{
+                              if( !pkt_strtstop_queue.empty() ){
+                                 pkt_strtstop_queue.pop();
+                              }
+                           }
+                           in += 48;
+                           i++;
+                           d_frame_complete = true;
+                           break;
+                        }
+                }
 
 		in += 48;
 		i++;
@@ -139,7 +174,8 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	return 0;
 }
 
-void decode() {
+bool decode() {
+        static int bad_pkts = 0;
 	demodulate();
 	deinterleave();
 	decode_conv();
@@ -150,8 +186,10 @@ void decode() {
 	boost::crc_32_type result;
 	result.process_bytes(out_bytes + 2, d_tx.psdu_size);
 	if(result.checksum() != 558161692) {
+                bad_pkts++;
+                //std::cout << "ofdm_decode_mac:bad_pkts=" << bad_pkts << std::endl;
 		dout << "checksum wrong -- dropping" << std::endl;
-		return;
+		return false;
 	}
 
 	mylog(boost::format("encoding: %1% - length: %2% - symbols: %3%")
@@ -162,8 +200,8 @@ void decode() {
 	pmt::pmt_t enc = pmt::from_uint64(d_ofdm.encoding);
 	pmt::pmt_t dict = pmt::make_dict();
 	dict = pmt::dict_add(dict, pmt::mp("encoding"), enc);
-        //dict = pmt::dict_add(dict, pmt::mp("acorr_peak"),acorr_peak);
 	message_port_pub(pmt::mp("out"), pmt::cons(dict, blob));
+        return true;
 }
 
 void demodulate() {
