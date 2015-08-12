@@ -73,13 +73,10 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 
 	int i = 0;
         static int rxd_frames = 0;
-        static int incomplete_frames = 0;
-        static int too_long_frames = 0;
 
 	std::vector<gr::tag_t> tags_ofdm_start;
         std::vector<gr::tag_t> tags_spre_start;
         std::vector<gr::tag_t> tags_pkt_end;
-        static std::queue<pmt::pmt_t> pkt_strtstop_queue;
 
 	const uint64_t nread = this->nitems_read(0);
 
@@ -90,12 +87,10 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                 get_tags_in_range(tags_ofdm_start, 0, nread + i, nread + i + 1,pmt::intern("ofdm_start"));
                 get_tags_in_range(tags_spre_start, 0 ,nread + i, nread + i + 1, pmt::intern("spre_start"));
                 get_tags_in_range(tags_pkt_end, 0 ,nread + i, nread + i + 1, pmt::intern("pkt_end"));
-		//if(tags_ofdm_start.size() && tags_acorr_peak.size() ) {
                   if(tags_ofdm_start.size()){
 			if (d_frame_complete == false) {
 				dout << "Warning: starting to receive new frame before old frame was complete" << std::endl;
 				dout << "Already copied " << copied << " out of " << d_tx.n_sym << " symbols of last frame" << std::endl;
-                                incomplete_frames++;
                                 //std::cout << "incomplete_frames=" << incomplete_frames << std::endl;
 			}
 			d_frame_complete = false;
@@ -115,7 +110,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                         // TODO - Use key not position
 			pmt::pmt_t tuple = tags_ofdm_start.at(0).value;
                         
-                        //acorr_peak = tags_acorr_peak.at(0).value;
 			int len_data = pmt::to_uint64(pmt::car(tuple));
 			int encoding = pmt::to_uint64(pmt::cdr(tuple));
 
@@ -132,8 +126,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					<< encoding << std::endl;
 			} else {
 				dout << "Dropping frame which is too large (symbols or bits)" << std::endl;
-                                too_long_frames++;
-                                //std::cout << "too_long_frames=" << too_long_frames << std::endl;
 			}
 		}
 
@@ -147,12 +139,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                            if( decode() ){
                               rxd_frames++;
                               //std::cout << "rxd_frames=" << rxd_frames << std::endl;
-
-                              if( !pkt_strtstop_queue.empty() ){
-                                std::cout << pmt::car(pkt_strtstop_queue.front()) 
-                                          << "," << pmt::cdr(pkt_strtstop_queue.front()) << std::endl;
-                                 pkt_strtstop_queue.pop();
-                              }
                               // Packet failed checksum, discard
                            }else{
                               if( !pkt_strtstop_queue.empty() ){
@@ -175,33 +161,41 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 }
 
 bool decode() {
-        static int bad_pkts = 0;
-	demodulate();
-	deinterleave();
-	decode_conv();
-	descramble();
-	print_output();
+   demodulate();
+   deinterleave();
+   decode_conv();
+   descramble();
+   print_output();
 
-	// skip service field
-	boost::crc_32_type result;
-	result.process_bytes(out_bytes + 2, d_tx.psdu_size);
-	if(result.checksum() != 558161692) {
-                bad_pkts++;
-                //std::cout << "ofdm_decode_mac:bad_pkts=" << bad_pkts << std::endl;
-		dout << "checksum wrong -- dropping" << std::endl;
-		return false;
-	}
+   // skip service field
+   boost::crc_32_type result;
+   result.process_bytes(out_bytes + 2, d_tx.psdu_size);
+   if(result.checksum() != 558161692) {
+      dout << "checksum wrong -- dropping" << std::endl;
+      return false;
+   }
 
-	mylog(boost::format("encoding: %1% - length: %2% - symbols: %3%")
-			% d_ofdm.encoding % d_tx.psdu_size % d_tx.n_sym);
+   mylog(boost::format("encoding: %1% - length: %2% - symbols: %3%")
+         % d_ofdm.encoding % d_tx.psdu_size % d_tx.n_sym);
 
-	// create PDU
-	pmt::pmt_t blob = pmt::make_blob(out_bytes + 2, d_tx.psdu_size - 4);
-	pmt::pmt_t enc = pmt::from_uint64(d_ofdm.encoding);
-	pmt::pmt_t dict = pmt::make_dict();
-	dict = pmt::dict_add(dict, pmt::mp("encoding"), enc);
-	message_port_pub(pmt::mp("out"), pmt::cons(dict, blob));
-        return true;
+   // create PDU
+   if( !pkt_strtstop_queue.empty() ){
+      //std::cout << pmt::car(pkt_strtstop_queue.front()) 
+      //          << "," << pmt::cdr(pkt_strtstop_queue.front()) << std::endl;
+      pmt::pmt_t blob = pmt::make_blob(out_bytes + 2, d_tx.psdu_size - 4);
+      pmt::pmt_t enc = pmt::from_uint64(d_ofdm.encoding);
+      // Baseband WLAN packet start/stop tags
+      // first element (car) is spre_start, second (cdr) is pkt_end...obfuscating names
+      pmt::pmt_t spre_start = pmt::car(pkt_strtstop_queue.front());
+      pmt::pmt_t pkt_end = pmt::cdr(pkt_strtstop_queue.front());
+      pmt::pmt_t dict = pmt::make_dict();
+      dict = pmt::dict_add(dict, pmt::mp("encoding"), enc);
+      dict = pmt::dict_add(dict, pmt::mp("spre_start"), spre_start);
+      dict = pmt::dict_add(dict, pmt::mp("pkt_end"), pkt_end);
+      message_port_pub(pmt::mp("out"), pmt::cons(dict, blob));
+      pkt_strtstop_queue.pop();
+   }
+   return true;
 }
 
 void demodulate() {
@@ -362,10 +356,11 @@ private:
 	bool d_log;
 	tx_param d_tx;
 	ofdm_param d_ofdm;
-        // Absolute sample index of peak autocorrelation
-        pmt::pmt_t acorr_peak;
 	int copied;
 	bool d_frame_complete;
+        // Hold baseband sample start/stop times
+        std::queue<pmt::pmt_t> pkt_strtstop_queue;
+        
 
 	Modulator<std::complex<double> > bpsk;
 	Modulator<std::complex<double> > qpsk;
