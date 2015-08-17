@@ -21,6 +21,7 @@
 #include "equalizer/linear_comb.h"
 #include "equalizer/lms.h"
 #include <gnuradio/io_signature.h>
+#include <queue>
 
 using namespace gr::ieee802_11;
 
@@ -53,7 +54,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 	int i = 0;
 	int o = 0;
 	dout << "SYMBOLS: input " << ninput_items[0] << "  output " << noutput_items << std::endl;
-        pmt::pmt_t spre_start_val = pmt::from_uint64(0);
 	while((i < ninput_items[0]) && (o < noutput_items)) {
 
 		get_tags_in_window(tags, 0, i, i + 1); 
@@ -66,7 +66,8 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
                            // Grab preamble tag to propagate
                            // Assuming order presevered AND one pair of tags per WLAN frame
                            const gr::tag_t &spre_tag = tags.at(1);
-                           spre_start_val = spre_tag.value;
+                           pkt_startstop_queue.push(spre_tag.value);
+                           //std::cout << "spre_start_val=" << pmt::to_uint64(spre_tag.value) << std::endl;
                         }else{
                            std::cout << "WARN: ofdm_equalize_symbols: tags.size() != 2" << std::endl;
 
@@ -79,10 +80,20 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 				pmt::string_to_symbol("ofdm_start"),
 				pmt::PMT_T,
 				pmt::string_to_symbol(name()));
-                        add_item_tag(0, nitems_written(0) + o,
-                                pmt::string_to_symbol("spre_start"),
-                                spre_start_val,
-                                pmt::string_to_symbol(name())); 
+                        
+                        if( !pkt_startstop_queue.empty() ){
+                           pmt::pmt_t spre_start_value = pkt_startstop_queue.front();
+                           if( pmt::to_uint64(spre_start_value) == 0 ){
+                              std::cout << "ofdm_equalize_symbols: spre_start == 0" << std::endl;
+                           }
+                           add_item_tag(0, nitems_written(0) + o,
+                                 pmt::string_to_symbol("spre_start"),
+                                 spre_start_value,
+                                 pmt::string_to_symbol(name())); 
+                           pkt_startstop_queue.pop();
+                        }else{
+                           std::cout << "ofdm_equalize symbols: queue is empty but need value" << std::endl;
+                        }
                }
 
 		d_equalizer->equalize(in + (i * 64), out + (o * 48), d_nsym);
@@ -123,6 +134,8 @@ private:
 	equalizer::base *d_equalizer;
 	std::vector<gr::tag_t> tags;
 	gr::thread::mutex d_mutex;
+        // Hold baseband sample start/stop times
+        std::queue<pmt::pmt_t> pkt_startstop_queue;
 };
 
 

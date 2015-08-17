@@ -109,7 +109,6 @@ int general_work (int noutput_items, gr_vector_int& ninput_items,
 					insert_tag(nitems_written(0) + o);
                                         if( nitems_read(0)+o >= 48){
                                         uint64_t spream_start_c = nitems_read(0)+o-48;
-                                        spream_start_c = spream_start_c;
                                         insert_spre_tag(nitems_written(0)+o,spream_start_c);
                                         }
 					dout << "SHORT Frame!" << std::endl;

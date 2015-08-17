@@ -73,13 +73,6 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 	if (d_tags.size()) {
 		std::sort(d_tags.begin(), d_tags.end(), gr::tag_t::offset_compare);
 		const gr::tag_t &tag = d_tags.front();
-                /**
-                for( int i = 0; i < d_tags.size(); i++ ){
-                     const gr::tag_t &ctag = d_tags.at(i);
-                     if( ctag.key == pmt::mp("spre_start")){
-                        //spre_queue.push(ctag.value);
-                     }
-                }**/
 		const uint64_t offset = tag.offset;
 		if(offset > nread) {
 		       ninput = offset - nread;
@@ -121,38 +114,39 @@ int general_work (int noutput, gr_vector_int& ninput_items,
 		break;
 
 	case COPY:
-		while(i < ninput && o < noutput) {
+                while(i < ninput && o < noutput) {
 
-			int rel = d_offset - d_frame_start;
-			if(!rel)  {
-                                //std::cout << "Add tag" << std::endl;
-				add_item_tag(0, nitems_written(0),
-					pmt::string_to_symbol("ofdm_start"),
-					pmt::PMT_T,
-					pmt::string_to_symbol(name()));
-                                 if( !spre_queue.empty() ){
-                                   spre_start_val = spre_queue.front();
-                                   //std::cout << "spre_start=" << spre_start_val << std::endl;
-                                   spre_queue.pop();
-                                 }else{
-                                    std::cout << "WARN: spre_queue is empty but need tag" << std::endl;
-                                 }
-                              //  std::cout << "ofdm_start@" << nitems_written(0) << std::endl;
-                               // Also propagate spre_start tag
-                               add_item_tag(0,nitems_written(0),
-                                        pmt::string_to_symbol("spre_start"),
-                                        spre_start_val,
-                                        pmt::string_to_symbol(name())); 
-			}
+                   int rel = d_offset - d_frame_start;
+                   if(!rel)  {
+                      //std::cout << "Add tag" << std::endl;
+                      add_item_tag(0, nitems_written(0),
+                            pmt::string_to_symbol("ofdm_start"),
+                            pmt::PMT_T,
+                            pmt::string_to_symbol(name()));
+                      if( !spre_queue.empty() ){
+                         spre_start_val = spre_queue.front();
+                         // Also propagate spre_start tag
+                         add_item_tag(0,nitems_written(0),
+                               pmt::string_to_symbol("spre_start"),
+                               spre_start_val,
+                               pmt::string_to_symbol(name())); 
+                         if( pmt::to_uint64(spre_start_val) == 0 ){
+                           std::cout << "ofdm_sync_long: spre_start is zero" << std::endl;
+                         }
+                         spre_queue.pop();
+                      }else{
+                         std::cout << "WARN: spre_queue is empty but need tag" << std::endl;
+                      }
+                   }
 
-			if(rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
-				out[o] = in_delayed[i] * exp(gr_complex(0, d_offset * d_freq_offset));
-				o++;
-			}
+                   if(rel >= 0 && (rel < 128 || ((rel - 128) % 80) > 15)) {
+                      out[o] = in_delayed[i] * exp(gr_complex(0, d_offset * d_freq_offset));
+                      o++;
+                   }
 
-			i++;
-			d_offset++;
-		}
+                   i++;
+                   d_offset++;
+                }
 
 		break;
 
