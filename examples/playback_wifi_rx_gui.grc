@@ -250,7 +250,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>9.9e6</value>
+      <value>10e6</value>
     </param>
   </block>
   <block>
@@ -718,7 +718,7 @@
     </param>
     <param>
       <key>file</key>
-      <value>/data/working/spring15game/rfsn1_epoch2_2s.sc16</value>
+      <value>/home/data/working/spring15game/rfsn1_epoch2_2s.sc16</value>
     </param>
     <param>
       <key>_coordinate</key>
