@@ -108,7 +108,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>/Users/pwg/spectrum_data/clemson_132500_rfsn1_2s_20msps.fc32</value>
+      <value>/home/pwg3v/spectrum_data/clemson_132500_rfsn1_2s_20msps.fc32</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -245,6 +245,33 @@
     </param>
     <param>
       <key>_coordinate</key>
+      <value>(1120, 27)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>sb_interp</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
       <value>(672, 75)</value>
     </param>
     <param>
@@ -258,6 +285,33 @@
     <param>
       <key>value</key>
       <value>320</value>
+    </param>
+  </block>
+  <block>
+    <key>variable</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1040, 91)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>taps</value>
+    </param>
+    <param>
+      <key>value</key>
+      <value>firdes.low_pass(sb_interp,20e6,1.0e6,10e3)</value>
     </param>
   </block>
   <block>
@@ -307,7 +361,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1032, 328)</value>
+      <value>(1032, 569)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -350,7 +404,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(616, 230)</value>
+      <value>(720, 489)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -393,7 +447,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(416, 432)</value>
+      <value>(416, 673)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -436,7 +490,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(424, 344)</value>
+      <value>(424, 585)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -479,7 +533,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(256, 339)</value>
+      <value>(256, 579)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -530,7 +584,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1200, 296)</value>
+      <value>(1201, 536)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -581,7 +635,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(584, 416)</value>
+      <value>(584, 659)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -636,7 +690,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 312)</value>
+      <value>(664, 553)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -687,7 +741,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(768, 430)</value>
+      <value>(768, 667)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -785,7 +839,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(816, 323)</value>
+      <value>(816, 563)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -832,7 +886,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(808, 227)</value>
+      <value>(928, 483)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -961,7 +1015,7 @@
     </param>
     <param>
       <key>bw</key>
-      <value>samp_rate</value>
+      <value>samp_rate*sb_interp</value>
     </param>
     <param>
       <key>alias</key>
@@ -993,7 +1047,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(848, 520)</value>
+      <value>(848, 763)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1268,7 +1322,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(224, 537)</value>
+      <value>(224, 779)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1627,7 +1681,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(912, 408)</value>
+      <value>(912, 651)</value>
     </param>
     <param>
       <key>gui_hint</key>
@@ -1955,6 +2009,65 @@
     </param>
   </block>
   <block>
+    <key>rational_resampler_xxx</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>decim</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>fbw</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(664, 163)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>rational_resampler_xxx_0</value>
+    </param>
+    <param>
+      <key>interp</key>
+      <value>sb_interp</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>taps</key>
+      <value></value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>ccc</value>
+    </param>
+  </block>
+  <block>
     <key>virtual_sink</key>
     <param>
       <key>comment</key>
@@ -1966,7 +2079,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1080, 373)</value>
+      <value>(1080, 611)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1975,6 +2088,87 @@
     <param>
       <key>id</key>
       <value>virtual_sink_0</value>
+    </param>
+    <param>
+      <key>stream_id</key>
+      <value>pkt_acorr</value>
+    </param>
+  </block>
+  <block>
+    <key>virtual_sink</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(864, 331)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>virtual_sink_1</value>
+    </param>
+    <param>
+      <key>stream_id</key>
+      <value>bb</value>
+    </param>
+  </block>
+  <block>
+    <key>virtual_sink</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(864, 187)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>virtual_sink_1_0</value>
+    </param>
+    <param>
+      <key>stream_id</key>
+      <value>bb</value>
+    </param>
+  </block>
+  <block>
+    <key>virtual_source</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(88, 699)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>virtual_source_0</value>
     </param>
     <param>
       <key>stream_id</key>
@@ -1993,7 +2187,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(88, 461)</value>
+      <value>(96, 483)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2001,11 +2195,11 @@
     </param>
     <param>
       <key>id</key>
-      <value>virtual_source_0</value>
+      <value>virtual_source_1</value>
     </param>
     <param>
       <key>stream_id</key>
-      <value>pkt_acorr</value>
+      <value>bb</value>
     </param>
   </block>
   <connection>
@@ -2076,19 +2270,13 @@
   </connection>
   <connection>
     <source_block_id>blocks_pdu_to_tagged_stream_0</source_block_id>
-    <sink_block_id>blocks_complex_to_mag_squared_0</sink_block_id>
+    <sink_block_id>rational_resampler_xxx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>blocks_pdu_to_tagged_stream_0</source_block_id>
-    <sink_block_id>blocks_delay_0_0</sink_block_id>
-    <source_key>0</source_key>
-    <sink_key>0</sink_key>
-  </connection>
-  <connection>
-    <source_block_id>blocks_pdu_to_tagged_stream_0</source_block_id>
-    <sink_block_id>blocks_multiply_xx_0</sink_block_id>
+    <sink_block_id>virtual_sink_1</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
@@ -2123,8 +2311,32 @@
     <sink_key>range</sink_key>
   </connection>
   <connection>
+    <source_block_id>rational_resampler_xxx_0</source_block_id>
+    <sink_block_id>virtual_sink_1_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
     <source_block_id>virtual_source_0</source_block_id>
     <sink_block_id>qtgui_time_sink_x_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>virtual_source_1</source_block_id>
+    <sink_block_id>blocks_complex_to_mag_squared_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>virtual_source_1</source_block_id>
+    <sink_block_id>blocks_delay_0_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>virtual_source_1</source_block_id>
+    <sink_block_id>blocks_multiply_xx_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
